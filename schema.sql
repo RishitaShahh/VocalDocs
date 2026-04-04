@@ -1,0 +1,31 @@
+-- SQL Schema for VocalDocs
+CREATE DATABASE IF NOT EXISTS vocaldocs_db;
+USE vocaldocs_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    extracted_text LONGTEXT,
+    status VARCHAR(50) DEFAULT 'PENDING' COMMENT 'PENDING, EXTRACTED, PROCESSING, COMPLETED, FAILED',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS audio_files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    document_id INT NOT NULL,
+    user_id INT NOT NULL,
+    file_path VARCHAR(255) NOT NULL, -- Relative path or identifier for the web app to serve
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

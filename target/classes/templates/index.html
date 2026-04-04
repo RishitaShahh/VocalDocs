@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocalDocs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #eff6ff;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: var(--primary);
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+        
+        .btn {
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px; 
+            font-weight: 500; 
+            font-size: 0.95rem;
+            cursor: pointer; 
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); 
+        }
+        .btn:disabled { 
+            background: var(--text-muted); 
+            transform: none; 
+            box-shadow: none; 
+            cursor: not-allowed; 
+        }
+        .btn-outline { 
+            background: transparent; 
+            color: var(--text-main);
+            border: 1px solid var(--border); 
+        }
+        .btn-outline:hover { 
+            background: #f1f5f9; 
+            box-shadow: none;
+        }
+
+        main {
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+
+        .container { 
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 900px; 
+            width: 100%; 
+            padding: 2.5rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .upload-section { margin-bottom: 3rem; }
+        
+        .upload-area {
+            border: 2px dashed var(--border); 
+            border-radius: 12px; 
+            padding: 3rem 2rem; 
+            text-align: center;
+            cursor: pointer; 
+            transition: all 0.2s;
+            background: #f8fafc;
+            position: relative;
+        }
+        .upload-area:hover, .upload-area.dragover { 
+            border-color: var(--primary); 
+            background: #eff6ff; 
+        }
+        .upload-area input[type="file"] {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+
+        .loader-container { display: none; text-align: center; padding: 2rem 0; flex-direction: column; align-items: center; gap: 1rem; }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary);
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+
+        .audio-result-wrapper { 
+            display: none; 
+            margin-top: 1.5rem; 
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+        }
+        .audio-result-wrapper audio { width: 100%; height: 44px; margin-bottom: 1rem; outline: none; }
+
+        .history-section h3 { margin-bottom: 1rem; color: var(--text-main); }
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .history-item {
+            display: flex; flex-direction: column; gap: 1rem; padding: 1.2rem;
+            border: 1px solid var(--border); 
+            background: #f8fafc;
+            border-radius: 10px;
+            transition: border-color 0.2s;
+        }
+        .history-item:hover { border-color: #cbd5e1; }
+        
+        .history-meta { display: flex; justify-content: space-between; align-items: center; }
+        .history-title { font-weight: 600; font-size: 1rem;}
+        .history-date { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;}
+        
+        .history-actions { display: flex; gap: 0.5rem; align-items: center;}
+        .btn-icon { 
+            background: white; border: 1px solid var(--border); color: var(--text-main); 
+            padding: 0.5rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; 
+            text-decoration: none; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-icon:hover { background: #f1f5f9; }
+        .btn-icon.delete:hover { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
+        .history-player { width: 100%; height: 36px; outline: none; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .auth-container { 
+            background: var(--surface); padding: 2.5rem; border-radius: 16px;
+            width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .close-modal {
+            position: absolute; top: 1rem; right: 1rem;
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.5rem; cursor: pointer;
+        }
+        
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-main); font-weight: 500; font-size: 0.9rem; }
+        .form-group input {
+            width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+        }
+        .form-group input:focus { border-color: var(--primary); }
+
+        .toast-container {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 2000;
+            display: flex; flex-direction: column; gap: 0.8rem; pointer-events: none;
+        }
+        .toast {
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-main); padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 0.8rem; font-weight: 500; font-size: 0.95rem;
+            animation: slideInRight 0.3s ease-out;
+            pointer-events: auto;
+        }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.fadeOut { animation: slideOutRight 0.3s forwards; }
+
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideOutRight { to { opacity: 0; transform: translateX(50px); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .text-center { text-align: center; }
+        .hidden { display: none !important; }
+
+        .features-section {
+            margin-top: 4rem;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border);
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .feature-item {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .feature-item:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+            border-color: var(--primary);
+        }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+        .feature-item strong { display: block; margin-bottom: 0.5rem; color: var(--text-main); font-size: 1.1rem; }
+        .feature-item p { font-size: 0.9rem; color: var(--text-muted); }
+
+        footer {
+            margin-top: 4rem;
+            padding: 3rem 5%;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .footer-logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+        .footer-text { color: var(--text-muted); font-size: 1rem; margin-bottom: 1rem; }
+        .copyright { font-size: 0.85rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">🎧 VocalDocs</div>
+        <div style="display:flex; align-items: center; gap: 1rem;">
+            <span id="userGreeting" style="font-size:0.95rem; font-weight:500; color: var(--text-muted);"></span>
+            <button class="btn btn-outline" id="btnLogin" onclick="openAuthModal()">Login / Sign Up</button>
+            <button class="btn btn-outline" id="btnLogout" onclick="logout()" style="display:none;">Logout</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            
+            <div class="page-header">
+                <h1>VocalDocs</h1>
+                <h2>Let Your Documents Speak 🎧</h2>
+                <p>Transform plain text into vibrant, lifelike audio with just one click. Perfect for learning, productivity, and on-the-go listening.</p>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadArea">
+                <h3 style="margin-bottom: 1rem; color: var(--text-main);">Upload Document</h3>
+                
+                <div class="upload-area" id="dropZone">
+                    <div style="font-size: 2.5rem; margin-bottom:1rem;">📥</div>
+                    <p style="font-weight: 500; color: var(--text-main);">Drag & Drop or Click to Browse</p>
+                    <p style="color:var(--text-muted);font-size:0.85rem; margin-top:0.5rem;">Accepted formats: PDF, TXT, DOCX</p>
+                    <input type="file" id="fileInput" accept=".pdf,.txt,.docx,.doc">
+                </div>
+                
+                <p id="selectedFileText" style="margin-top: 1rem; font-weight: 500; color: var(--primary); text-align: center;"></p>
+
+                <button class="btn" id="btnSynthesize" style="width:100%; padding: 0.9rem; margin-top:1.5rem;" disabled onclick="uploadFile()">Synthesize Audio</button>
+                
+                <div class="loader-container" id="loader">
+                    <div class="spinner"></div>
+                    <p style="color:var(--text-muted); font-size:0.95rem;">Synthesizing audio... Please wait.</p>
+                </div>
+
+                <div class="audio-result-wrapper" id="audioResult">
+                    <h3 style="margin-bottom:1rem; font-size:1rem;">🎵 Ready for Playback</h3>
+                    <audio id="resultPlayer" controls></audio>
+                    <a id="downloadLink" href="#" class="btn" style="text-decoration:none; display:inline-block; margin-top:0.5rem;" download>⬇️ Download Audio</a>
+                </div>
+            </div>
+
+            <!-- Dashboard Logic: Added Features below Upload Area as requested -->
+            <!-- Features Section: animated cards restored -->
+            <div class="features-section" id="featuresSection">
+                <h2 class="text-center" style="color: var(--text-main);">What VocalDocs can Do</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <span class="feature-icon">📄</span>
+                        <strong>Upload Documents</strong>
+                        <p>Easily import PDF, TXT, or DOCX files into the system.</p>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <strong>Convert to Audio</strong>
+                        <p>High-speed synthesis into natural-sounding voice files.</p>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🎧</span>
+                        <strong>Listen Online</strong>
+                        <p>Integrated player allows you to listen right in the browser.</p>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">💾</span>
+                        <strong>Download Audio</strong>
+                        <p>Save your converted audio files as MP3 for offline use.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-section" id="historyDiv" style="display:none;">
+                <hr style="border:none; border-top:1px solid var(--border); margin: 2rem 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>Your Audio Library</h3>
+                    <button class="btn-outline" style="padding: 0.3rem 0.6rem; border-radius: 6px; font-size:0.85rem; cursor:pointer;" onclick="loadHistory()">Refresh</button>
+                </div>
+
+                <div id="historyListContainer" class="history-list">
+                    <p class="text-center" style="color:var(--text-muted);">Loading history...</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="auth-container">
+            <button class="close-modal" onclick="closeAuthModal()">&times;</button>
+            <h2 id="authTitle" style="margin-bottom: 1.5rem; text-align: center;">Login</h2>
+            
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="form-group hidden" id="usernameGroup">
+                    <label>Username</label>
+                    <input type="text" id="authUsername">
+                </div>
+                <div class="form-group">
+                    <label id="emailLabel">Username or Email</label>
+                    <input type="text" id="authEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" required>
+                </div>
+                <button type="submit" class="btn" style="width:100%; margin-top:0.5rem;" id="authSubmitBtn">Login</button>
+            </form>
+            
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-top:1.5rem; text-align: center;">
+                <span id="authToggleText">Don't have an account?</span> 
+                <a href="#" style="color:var(--primary); text-decoration:none; font-weight:500;" onclick="toggleAuthMode()">
+                    <span id="authToggleAction">Sign Up</span>
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-logo">🎧 VocalDocs</div>
+        <p class="footer-text">Convert documents into audio easily</p>
+        <p class="copyright">&copy; 2026 VocalDocs. All rights reserved.</p>
+    </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let isLoginMode = true;
+        let selectedFile = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+            setupFileListeners();
+        });
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? '✅' : '❌';
+            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('fadeOut');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+            if (!isLoginMode) toggleAuthMode();
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authPassword').value = '';
+        }
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').innerText = isLoginMode ? "Login" : "Sign Up";
+            document.getElementById('authSubmitBtn').innerText = isLoginMode ? "Login" : "Sign Up";
+            document.getElementById('authToggleText').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
+            document.getElementById('authToggleAction').innerText = isLoginMode ? "Sign Up" : "Login";
+            
+            const userGroup = document.getElementById('usernameGroup');
+            const emailLabel = document.getElementById('emailLabel');
+            const authEmail = document.getElementById('authEmail');
+            
+            if (isLoginMode) {
+                userGroup.classList.add('hidden');
+                document.getElementById('authUsername').required = false;
+                emailLabel.innerText = "Username or Email";
+                authEmail.type = "text";
+            } else {
+                userGroup.classList.remove('hidden');
+                document.getElementById('authUsername').required = true;
+                emailLabel.innerText = "Email Address";
+                authEmail.type = "email";
+            }
+        }
+
+        function setLoginState(isLoggedIn, username = null) {
+            if (isLoggedIn) {
+                document.getElementById('btnLogin').style.display = 'none';
+                document.getElementById('btnLogout').style.display = 'inline-block';
+                document.getElementById('historyDiv').style.display = 'block'; 
+                document.getElementById('featuresSection').style.display = 'none'; // Hide features after login
+                document.getElementById('userGreeting').innerText = `Welcome, ${username}`;
+                loadHistory(); 
+            } else {
+                document.getElementById('btnLogin').style.display = 'inline-block';
+                document.getElementById('btnLogout').style.display = 'none';
+                document.getElementById('historyDiv').style.display = 'none'; 
+                document.getElementById('featuresSection').style.display = 'block'; // Show features before login
+                document.getElementById('userGreeting').innerText = '';
+            }
+        }
+
+        async function checkAuthStatus() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if(res.ok) {
+                    const data = await res.json();
+                    if (data.loggedIn) {
+                        setLoginState(true, data.username);
+                    } else {
+                        setLoginState(false);
+                    }
+                }
+            } catch(e) { console.error("Could not check auth status", e); }
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const username = document.getElementById('authUsername').value;
+            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+
+            const formData = new URLSearchParams();
+            formData.append('email', email);
+            formData.append('password', password);
+            if (!isLoginMode) {
+                formData.append('username', username);
+            }
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showToast(data.message || "Success!", "success");
+                    closeAuthModal();
+                    setLoginState(true, data.username);
+                } else {
+                    showToast(data.error || "Authentication failed", "error");
+                }
+            } catch (err) { 
+                showToast("Network error occurred connecting to server.", "error"); 
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {method: 'POST'});
+                setLoginState(false);
+                showToast("Logged out successfully", "success");
+            } catch (err) {
+                showToast("Error during logout", "error");
+            }
+        }
+
+        function setupFileListeners() {
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => handleFilesSelected(e.dataTransfer.files));
+            fileInput.addEventListener('change', (e) => handleFilesSelected(e.target.files));
+        }
+
+        function handleFilesSelected(files) {
+            if (files.length > 0) {
+                selectedFile = files[0];
+                document.getElementById('selectedFileText').innerText = `Selected File: ${selectedFile.name}`;
+                document.getElementById('btnSynthesize').disabled = false;
+                document.getElementById('audioResult').style.display = 'none';
+            }
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+            const dropZone = document.getElementById('dropZone');
+            const btnSynthesize = document.getElementById('btnSynthesize');
+            const loader = document.getElementById('loader');
+            const audioResult = document.getElementById('audioResult');
+            const selectedText = document.getElementById('selectedFileText');
+            audioResult.style.display = 'none';
+            dropZone.style.display = 'none';
+            btnSynthesize.style.display = 'none';
+            selectedText.style.display = 'none';
+            loader.style.display = 'flex';
+            const formData = new FormData();
+            formData.append('documentFile', selectedFile);
+            try {
+                const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.success || 'Audio generated!', 'success');
+                    audioResult.style.display = 'block';
+                    document.getElementById('resultPlayer').src = data.downloadLink;
+                    document.getElementById('downloadLink').href = data.downloadLink;
+                    if(document.getElementById('historyDiv').style.display !== 'none') {
+                        loadHistory();
+                    }
+                } else {
+                    showToast(data.error || 'Upload failed', 'error');
+                }
+            } catch (err) {
+                 showToast('Upload failed due to connection error.', 'error');
+            } finally {
+                 dropZone.style.display = 'block';
+                 btnSynthesize.style.display = 'block';
+                 selectedText.style.display = 'block';
+                 loader.style.display = 'none';
+                 selectedFile = null;
+                 selectedText.innerText = '';
+                 btnSynthesize.disabled = true;
+                 document.getElementById('fileInput').value = '';
+            }
+        }
+
+        async function loadHistory() {
+            const container = document.getElementById('historyListContainer');
+            container.innerHTML = '<div class="loader-container" style="display:flex;"><div class="spinner"></div></div>';
+            try {
+                const res = await fetch('/api/history');
+                if (res.ok) {
+                    const histories = await res.json();
+                    container.innerHTML = '';
+                    if (!histories || histories.length === 0) {
+                        container.innerHTML = `<p style="text-align:center; padding: 1rem 0; color:var(--text-muted);">No history found.</p>`;
+                        return;
+                    }
+                    histories.forEach(h => {
+                        const dateObj = new Date(h.timestamp);
+                        const dateStr = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        item.innerHTML = `
+                            <div class="history-meta">
+                                <div>
+                                    <div class="history-title">${h.fileName} <span style="font-size:0.75rem; background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:normal;">${h.fileType}</span></div>
+                                    <div class="history-date">Converted on ${dateStr}</div>
+                                </div>
+                                <div class="history-actions">
+                                    <a class="btn-icon" title="Download" href="${h.audioPath}" download>⬇️</a>
+                                    <button class="btn-icon delete" title="Delete" onclick="deleteHistory(${h.id})">🗑️</button>
+                                </div>
+                            </div>
+                            <audio class="history-player" controls preload="none">
+                                <source src="${h.audioPath}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        `;
+                        container.appendChild(item);
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-center" style="color:var(--danger)">Failed to load history.</p>';
+                    showToast("Error retrieving history.", "error");
+                }
+            } catch(e) {
+                container.innerHTML = '<p class="text-center" style="color:var(--danger)">Network error fetching history.</p>';
+            }
+        }
+
+        async function deleteHistory(id) {
+            if(confirm("Are you sure you want to delete this audio file from your library?")) {
+                try {
+                    const res = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+                    if(res.ok) {
+                        showToast("Audio record deleted.", "success");
+                        loadHistory();
+                    } else {
+                        showToast("Failed to delete record.", "error");
+                    }
+                } catch(e) {
+                    showToast("Network error.", "error");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
